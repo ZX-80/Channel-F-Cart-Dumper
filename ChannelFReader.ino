@@ -131,3 +131,6 @@ void dump_cartridge(bool read_only) {
     }
     Serial.println("\nThat's All Folks!");
 }
+
+// Confirm that the Videocart responds appropriately to all ROMC commands
+void run_diagnostics(void) {}

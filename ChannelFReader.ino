@@ -14,15 +14,6 @@ void setup() {
     digitalWrite(WRITE_PIN, LOW);
     pinMode(WRITE_PIN, OUTPUT);
 
-    digitalWrite(53, LOW); //GND
-    pinMode(53, OUTPUT);
-
-    digitalWrite(26, HIGH); //5V
-    pinMode(26, OUTPUT);
-
-    digitalWrite(24, HIGH); //5V
-    pinMode(24, OUTPUT);
-
     for (uint8_t i = 0; i < 8; i++) {
         pinMode(DBUS_PINS[i], INPUT_PULLUP); // Default to high impedance
     }
@@ -128,7 +119,7 @@ void dump_cartridge(bool read_only) {
         sprintf(dataString, " %02X", execute_in(0x00));
         Serial.print(dataString);
         if ((addr & 0xF) == 0xF && addr != 0x1000 - 1) {
-            sprintf(addrString, "\n%04X:", addr + 1);
+            sprintf(addrString, "\n%04X:", addr + 1 + 0x800);
             Serial.print(addrString);
         }
     }

@@ -121,16 +121,16 @@ void dump_cartridge(bool read_only) {
     }
 
     // Read ROM data
-    char byteString[4];
-    for (uint16_t addr = 0; addr < 0x1000; addr++) {
-        sprintf(byteString, "%02X ", execute_in(0x00));
-        if (addr > 0 && addr % 16 == 0) {
-            byteString[2] = '\n';
+    char dataString[4];
+    char addrString[7];
+    Serial.print("\n0000:");
+    for (uint16_t addr = 0; addr < 0x1000; addr++) { // Assume 4K ROM
+        sprintf(dataString, " %02X", execute_in(0x00));
+        Serial.print(dataString);
+        if ((addr & 0xF) == 0xF && addr != 0x1000 - 1) {
+            sprintf(addrString, "\n%04X:", addr + 1);
+            Serial.print(addrString);
         }
-        Serial.print(byteString);
     }
     Serial.println("\nThat's All Folks!");
 }
-
-// Confirm that the Videocart responds appropriately to all ROMC commands
-void run_diagnostics(void) {}

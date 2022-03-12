@@ -99,8 +99,8 @@ void clock_tick(uint8_t repeat) {
     }
 }
 
+// Output ROM data from PC to PC + 4K 
 void read_ROM(void) {
-    // Read ROM data
     char dataString[4];
     char addrString[7];
     Serial.print("\n0000:");
@@ -112,6 +112,22 @@ void read_ROM(void) {
             Serial.print(addrString);
         }
     }
+}
+
+// Range is [0x08 - 0x18) to stay in 4K Videocart address space
+uint8_t random_data[16] = {0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17};
+
+// Verify the read/write function of a register
+void register_test(uint8_t romc_write, uint8_t romc_read) {
+    for (uint8_t i = 0; i < sizeof(random_data); i++) {
+        execute_out(romc_write, random_data[i]);
+        if (execute_in(romc_read) == random_data[i]) {
+            Serial.print(".");
+        } else {
+            Serial.print("X");
+        }
+    }
+    Serial.print("\n");
 }
 
 // Run multiple test cases to verify videocart functionality
@@ -130,5 +146,20 @@ void test_videocart(void) {
     execute_out(0x14, 0x08); // Load the data bus into the high order byte of PC0. Sets PC0 to 0x08??
     execute_out(0x17, 0x00); // Load the data bus into the low order byte of PC0. Sets PC0 to 0x0800
     read_ROM();
+    
+    // Register read/write test: ROMC 0x06, 0x07, 0x09, 0x0B, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1E, 0x1F
+    Serial.println("Register read/write test:");
+    Serial.print("  PC0H ");
+    register_test(0x14, 0x1F); // 0x14  high PC0 = dbus; 0x1F  dbus = high PC0
+    Serial.print("  PC0L ");
+    register_test(0x17, 0x1E); // 0x17  low PC0 = dbus; 0x1E  dbus = low PC0
+    Serial.print("  PC1H ");
+    register_test(0x15, 0x07); // 0x15  high PC1 = dbus; 0x07  dbus = high PC1
+    Serial.print("  PC1L ");
+    register_test(0x18, 0x0B); // 0x18  low PC1 = dbus; 0x0B  dbus = low PC1
+    Serial.print("  DC0H ");
+    register_test(0x16, 0x06); // 0x16  high DC0 = dbus; 0x06  dbus = high DC0
+    Serial.print("  DC0L ");
+    register_test(0x19, 0x09); // 0x19  low DC0 = dbus; 0x09  dbus = low DC0
 
 }

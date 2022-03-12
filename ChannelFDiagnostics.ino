@@ -100,12 +100,12 @@ void clock_tick(uint8_t repeat) {
 }
 
 // Output ROM data from PC to PC + 4K 
-void read_ROM(void) {
+void read_ROM(uint8_t romc_fetch) {
     char dataString[4];
     char addrString[7];
     Serial.print("\n0000:");
     for (uint16_t addr = 0; addr < 0x1000; addr++) { // Assume 4K ROM
-        sprintf(dataString, " %02X", execute_in(0x00));
+        sprintf(dataString, " %02X", execute_in(romc_fetch));
         Serial.print(dataString);
         if ((addr & 0xF) == 0xF && addr != 0x1000 - 1) {
             sprintf(addrString, "\n%04X:", addr + 1 + 0x800);
@@ -133,19 +133,37 @@ void register_test(uint8_t romc_write, uint8_t romc_read) {
 // Run multiple test cases to verify videocart functionality
 void test_videocart(void) {
   
+    
     // ROM read test 1: ROMC 0x00, 0x08
     Serial.println("ROM read test 1:");
     execute_in(0x08); // Load the data bus into both halves of PC0. Sets PC0 to 0xFFFF
     for (uint16_t i = 0; i < 0x801; i++) { // Increment PC0 until it's 0x0800
         execute_in(0x00);
     }
-    read_ROM();
+    read_ROM(0x00);
   
+    
     // ROM read test 2: ROMC 0x00, 0x14, 0x17
     Serial.println("ROM read test 2:");
     execute_out(0x14, 0x08); // Load the data bus into the high order byte of PC0. Sets PC0 to 0x08??
     execute_out(0x17, 0x00); // Load the data bus into the low order byte of PC0. Sets PC0 to 0x0800
-    read_ROM();
+    read_ROM(0x00);
+    
+    
+    // ROM read test 3: ROMC 0x03, 0x08
+    Serial.println("ROM read test 3:");
+    execute_in(0x08); // Load the data bus into both halves of PC0. Sets PC0 to 0xFFFF
+    for (uint16_t i = 0; i < 0x801; i++) { // Increment PC0 until it's 0x0800
+        execute_in(0x03);
+    }
+    read_ROM(0x03);
+
+  
+    // ROM read test 4: ROMC 0x03, 0x14, 0x17
+    Serial.println("ROM read test 4:");
+    execute_out(0x14, 0x08); // Load the data bus into the high order byte of PC0. Sets PC0 to 0x08??
+    execute_out(0x17, 0x00); // Load the data bus into the low order byte of PC0. Sets PC0 to 0x0800
+    read_ROM(0x03);
     
     // Register read/write test: ROMC 0x06, 0x07, 0x09, 0x0B, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1E, 0x1F
     Serial.println("Register read/write test:");
@@ -161,5 +179,63 @@ void test_videocart(void) {
     register_test(0x16, 0x06); // 0x16  high DC0 = dbus; 0x06  dbus = high DC0
     Serial.print("  DC0L ");
     register_test(0x19, 0x09); // 0x19  low DC0 = dbus; 0x09  dbus = low DC0
+    
+    // PC copy test: ROMC 0x04, 0x12, 0x0D
+    Serial.println("PC copy test:");
+    execute_out(0x14, 0x08); // 0x14  high PC0 = dbus
+    execute_out(0x17, 0x09); // 0x17  low PC0 = dbus
+    execute_out(0x15, 0x0A); // 0x15  high PC1 = dbus
+    execute_out(0x18, 0x0B); // 0x18  low PC1 = dbus
+    execute_in(0x04);        // 0x04  PC0 = PC1
+    if (execute_in(0x1F) == 0x0A) {
+        Serial.println("  PASSED");
+    } else {
+        Serial.println("  FAILED");
+    }
+    if (execute_in(0x1E) == 0x0B) {
+        Serial.println("  PASSED");
+    } else {
+        Serial.println("  FAILED");
+    }
+    if (execute_in(0x07) == 0x0A) {
+        Serial.println("  PASSED");
+    } else {
+        Serial.println("  FAILED");
+    }
+    if (execute_in(0x0B) == 0x0B) {
+        Serial.println("  PASSED");
+    } else {
+        Serial.println("  FAILED");
+    }
+    
+    // DC Swap test: ROMC 0x1D
+    Serial.println("Swap test:");
+    execute_out(0x16, 0x08); // 0x16  high DC0 = 0x8
+    execute_out(0x19, 0x09); // 0x19  low DC0 = 0x9
+    execute_in(0x1D);        // Swap DC0 & DC1
+    execute_out(0x16, 0x0A); // 0x16  high DC0 = 0xA
+    execute_out(0x19, 0x0B); // 0x19  low DC0 = 0xB
+    execute_in(0x1D);        // Swap DC0 & DC1
+    if (execute_in(0x06) == 0x08) {
+        Serial.println("  PASSED");
+    } else {
+        Serial.println("  FAILED");
+    }
+    if (execute_in(0x09) == 0x09) {
+        Serial.println("  PASSED");
+    } else {
+        Serial.println("  FAILED");
+    }
+    execute_in(0x1D);        // Swap DC0 & DC1
+    if (execute_in(0x06) == 0x0A) {
+        Serial.println("  PASSED");
+    } else {
+        Serial.println("  FAILED");
+    }
+    if (execute_in(0x09) == 0x0B) {
+        Serial.println("  PASSED");
+    } else {
+        Serial.println("  FAILED");
+    }
 
 }

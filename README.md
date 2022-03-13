@@ -36,9 +36,11 @@ The Channel F has a fairly simple memory layout. It's PC is 16-bits wide, for a 
   <img src="https://user-images.githubusercontent.com/44975876/158039462-0ddce313-e5f4-45ea-be5a-597dad10f69e.png" width="90%" />
 </p>
 
-## Pinout
+## Videocart to Arduino Pin Connections
 
 <img src="https://user-images.githubusercontent.com/44975876/158038594-6b74264d-a01b-4688-a2d6-b7ea2ebc51cf.png" align="right" width="30%" />
+
+The 3851 ICs used in Videocarts have an *Absolute Maximum Rating* of -0.3V to +15V, but recommend +12V, on VGG. So while it's possible to connect VGG to an Arduinos +5V pin, I would not recommend it. Instead you should use an external power source. My recomendation is a 12V DC power supply with its positive pin attached to the Videocarts +12V, and its GND pin connected to the Arduinos GND pin.
 
 | Videocart pins                         | Arduino pins                   |
 | -------------------------------------- | ------------------------------ |
@@ -48,9 +50,7 @@ The Channel F has a fairly simple memory layout. It's PC is 16-bits wide, for a 
 | WRITE                                  | 34                             |
 | GND                                    | GND                            |
 | +5V                                    | +5V                            |
-| +12V                                   | *                              |
-
-\* The Arduino cannot supply +12V, so this will need to come from an external power source. My recomendation is a 12V DC power supply with its positive pin attached to the Videocarts +12V, and its GND pin connected to the Arduinos GND pin.
+| +12V / VGG                             | N/A                            |
 
 # Useful Links / Sources
 
